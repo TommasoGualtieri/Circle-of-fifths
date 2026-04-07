@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circolo delle Quinte Interattivo</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --dark: #333;
+            --highlight: #ffcc00;
+        }
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding: 20px; }
+        
+        /* Struttura del Circolo */
+        .circle-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 40px auto;
+            border-radius: 50%;
+            border: 5px solid var(--dark);
+            background: white;
+        }
+
+        .note-sector {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            margin: -30px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .note-sector:hover { transform: scale(1.1); }
+        .note-sector.active { background: var(--dark); border-color: var(--highlight); }
+
+        /* Pannello Info */
+        .info-panel {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+
+    <h1>Circolo delle Quinte</h1>
+    <p>Clicca su una nota per armonizzare la scala</p>
+
+    <div class="circle-container" id="circle"></div>
+
+    <div class="info-panel" id="results">
+        <h2 id="current-key">Seleziona una tonalità</h2>
+        <p id="relatives">-</p>
+        <table id="chord-table">
+            <thead>
+                <tr>
+                    <th>I</th><th>ii</th><th>iii</th><th>IV</th><th>V</th><th>vi</th><th>vii°</th>
+                </tr>
+            </thead>
+            <tbody id="chord-body">
+                <tr><td colspan="7">Seleziona una nota sopra</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const notesInOrder = ["C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"];
+        const chromaticScale = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        const chordTypes = ["Maj", "m", "m", "Maj", "Maj", "m", "dim"];
+        const intervals = [0, 2, 4, 5, 7, 9, 11];
+
+        const circle = document.getElementById('circle');
+
+        // 1. Genera il cerchio graficamente
+        notesInOrder.forEach((note, i) => {
+            const angle = (i * 30 - 90) * (Math.PI / 180);
+            const x = 175 + 140 * Math.cos(angle);
+            const y = 175 + 140 * Math.sin(angle);
+
+            const btn = document.createElement('div');
+            btn.className = 'note-sector';
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+            btn.innerText = note;
+            btn.onclick = () => updateKey(note, btn);
+            circle.appendChild(btn);
+        });
+
+        // 2. Logica di aggiornamento
+        function updateKey(root, element) {
+            // UI Update
+            document.querySelectorAll('.note-sector').forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+
+            document.getElementById('current-key').innerText = "Tonalità: " + root + " Maggiore";
+
+            // Calcolo Accordi
+            let rootIdx = chromaticScale.indexOf(root);
+            if(rootIdx === -1) rootIdx = chromaticScale.indexOf(convertToFlat(root)); // Gestione enarmonia base
+
+            const chords = intervals.map((interval, i) => {
+                const noteIdx = (rootIdx + interval) % 12;
+                return chromaticScale[noteIdx] + chordTypes[i];
+            });
+
+            // Update Tabella
+            const html = chords.map(c => `<td>${c}</td>`).join('');
+            document.getElementById('chord-body').innerHTML = `<tr>${html}</tr>`;
+            
+            // Relativa Minore (vi grado)
+            document.getElementById('relatives').innerText = `Relativa minore: ${chords[5]}`;
+        }
+
+        function convertToFlat(note) {
+            const mapping = {"F#":"Gb", "C#":"Db", "G#":"Ab", "D#":"Eb", "A#":"Bb"};
+            return mapping[note] || note;
+        }
+    </script>
+</body>
+</html>
