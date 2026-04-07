@@ -3,70 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle of Fifths Dashboard</title>
+    <title>Circle of Fifths - Advanced Dashboard</title>
     <style>
         :root {
             --primary-green: #66bb6a;
             --dark-gray: #333;
             --accent-gold: #ffca28;
             --bg-light: #f4f7f6;
-            --sidebar-bg: #ffffff;
+            --white: #ffffff;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-light); margin: 0; padding: 20px; color: var(--dark-gray); }
-        
-        .dashboard { display: flex; max-width: 1200px; margin: 0 auto; gap: 30px; align-items: flex-start; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-light); margin: 0; padding: 20px; color: var(--dark-gray); }
+        .dashboard { display: flex; max-width: 1400px; margin: 0 auto; gap: 20px; }
 
-        /* TABELLA LATERALE (LEGENDA ALTERAZIONI) */
-        .sidebar { width: 300px; background: var(--sidebar-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .sidebar h3 { margin-top: 0; font-size: 1.1em; border-bottom: 2px solid var(--primary-green); padding-bottom: 10px; }
-        .sidebar-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
-        .sidebar-row:hover { color: var(--primary-green); }
-        .sidebar-row.active { font-weight: bold; color: var(--primary-green); }
-        .sig-detail { color: #888; font-family: serif; }
+        /* SIDEBAR SINISTRA */
+        .sidebar { width: 350px; display: flex; flex-direction: column; gap: 20px; }
+        .side-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .side-card h3 { margin-top: 0; font-size: 1em; border-bottom: 2px solid var(--primary-green); padding-bottom: 8px; }
+        
+        .sig-list { font-size: 0.85em; }
+        .sig-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .sig-row.active { color: var(--primary-green); font-weight: bold; }
+        .sig-notes { color: #cc8e00; font-family: monospace; }
+
+        /* TABELLA MEMO (MODI) */
+        .memo-table { width: 100%; border-collapse: collapse; font-size: 0.75em; margin-top: 10px; }
+        .memo-table th, .memo-table td { text-align: left; padding: 6px; border-bottom: 1px solid #eee; }
+        .memo-table th { color: #888; }
 
         /* AREA CENTRALE */
         .main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
-
-        /* CIRCOLO */
-        .circle-wrapper { position: relative; width: 480px; height: 480px; margin-bottom: 40px; background: white; border-radius: 50%; box-shadow: inset 0 0 50px rgba(0,0,0,0.02); }
+        .circle-wrapper { position: relative; width: 460px; height: 460px; background: white; border-radius: 50%; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
         .note-btn {
-            position: absolute; width: 76px; height: 76px; margin: -38px;
+            position: absolute; width: 74px; height: 74px; margin: -37px;
             border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background: var(--primary-green); color: white; border: 4px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            z-index: 2;
+            cursor: pointer; transition: 0.3s; background: var(--primary-green); color: white; border: 4px solid white;
         }
-        .note-btn b { font-size: 1.2em; }
-        .note-btn span { font-size: 0.75em; opacity: 0.9; }
-        .note-btn.active { background: var(--dark-gray); transform: scale(1.1); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
-
-        /* GRADI GIALLI */
+        .note-btn.active { background: var(--dark-gray); transform: scale(1.1); }
         .degree-marker {
-            position: absolute; width: 26px; height: 26px; background: var(--accent-gold);
-            border-radius: 50%; font-size: 10px; font-weight: bold; color: white;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 10; pointer-events: none; transition: 0.5s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid white;
+            position: absolute; width: 24px; height: 24px; background: var(--accent-gold);
+            border-radius: 50%; font-size: 9px; font-weight: bold; color: white;
+            display: flex; align-items: center; justify-content: center; z-index: 10; transition: 0.5s;
         }
 
-        /* TABELLE ACCORDI */
-        .info-card { width: 100%; background: white; border-radius: 15px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card-header { background: #f8f9fa; padding: 15px 20px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #fafafa; color: #999; font-size: 0.75em; padding: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 18px; text-align: center; border-bottom: 1px solid #f0f0f0; font-weight: bold; font-size: 1.1em; width: 14.2%; }
-        
-        .alteration-info { font-weight: normal; color: #66bb6a; font-size: 0.9em; }
+        /* TABELLE ARMONIZZAZIONE */
+        .info-card { width: 100%; background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #f8f9fa; padding: 12px 20px; font-weight: bold; font-size: 0.9em; display: flex; justify-content: space-between; }
+        table.harm-table { width: 100%; border-collapse: collapse; }
+        .harm-table th { background: #fafafa; color: #aaa; font-size: 0.7em; padding: 8px; text-transform: uppercase; }
+        .harm-table td { padding: 12px; text-align: center; border-top: 1px solid #f0f0f0; font-weight: bold; width: 14.2%; }
+        .quad-row { background: #fffcf0; font-size: 0.9em; color: #a57c00; }
+        .row-label { font-size: 0.6em; color: #bbb; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
     <div class="sidebar">
-        <h3>Alterazioni in Chiave</h3>
-        <div id="sidebar-list"></div>
+        <div class="side-card">
+            <h3>Tonalità e Alterazioni</h3>
+            <div id="sig-list" class="sig-list"></div>
+        </div>
+
+        <div class="side-card">
+            <h3>Memo: Gradi ed Intervalli</h3>
+            <table class="memo-table">
+                <thead><tr><th>Gr.</th><th>Accordo</th><th>Intervalli</th></tr></thead>
+                <tbody>
+                    <tr><td>I</td><td>Maj7</td><td>1, 3M, 5G, 7M</td></tr>
+                    <tr><td>ii</td><td>min7</td><td>1, 3m, 5G, 7m</td></tr>
+                    <tr><td>iii</td><td>min7</td><td>1, 3m, 5G, 7m</td></tr>
+                    <tr><td>IV</td><td>Maj7</td><td>1, 3M, 5G, 7M</td></tr>
+                    <tr><td>V</td><td>7 (Dom)</td><td>1, 3M, 5G, 7m</td></tr>
+                    <tr><td>vi</td><td>min7</td><td>1, 3m, 5G, 7m</td></tr>
+                    <tr><td>vii°</td><td>m7♭5</td><td>1, 3m, 5dim, 7m</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="main-content">
@@ -81,24 +95,24 @@
         </div>
 
         <div class="info-card">
-            <div class="card-header">
-                <span id="maj-title">Armonizzazione Maggiore</span>
-                <span id="maj-alt" class="alteration-info"></span>
-            </div>
-            <table>
+            <div class="card-header"><span id="maj-title">--</span></div>
+            <table class="harm-table">
                 <thead><tr><th>I</th><th>ii</th><th>iii</th><th>IV</th><th>V</th><th>vi</th><th>vii°</th></tr></thead>
-                <tbody id="maj-body"></tbody>
+                <tbody>
+                    <tr id="maj-triadi"></tr>
+                    <tr id="maj-quadriadi" class="quad-row"></tr>
+                </tbody>
             </table>
         </div>
 
         <div class="info-card">
-            <div class="card-header">
-                <span id="min-title">Armonizzazione Minore Naturale</span>
-                <span id="min-alt" class="alteration-info"></span>
-            </div>
-            <table>
+            <div class="card-header"><span id="min-title">--</span></div>
+            <table class="harm-table">
                 <thead><tr><th>i</th><th>ii°</th><th>III</th><th>iv</th><th>v</th><th>VI</th><th>VII</th></tr></thead>
-                <tbody id="min-body"></tbody>
+                <tbody>
+                    <tr id="min-triadi"></tr>
+                    <tr id="min-quadriadi" class="quad-row"></tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -106,7 +120,7 @@
 
 <script>
     const data = [
-        { maj: "C", min: "Am", sig: "Nessuna", notes: ["C","D","E","F","G","A","B"], alts: "Nessuna" },
+        { maj: "C", min: "Am", sig: "0", notes: ["C","D","E","F","G","A","B"], alts: "Nessuna" },
         { maj: "G", min: "Em", sig: "1 ♯", notes: ["G","A","B","C","D","E","F♯"], alts: "F♯" },
         { maj: "D", min: "Bm", sig: "2 ♯", notes: ["D","E","F♯","G","A","B","C♯"], alts: "F♯, C♯" },
         { maj: "A", min: "F♯m", sig: "3 ♯", notes: ["A","B","C♯","D","E","F♯","G♯"], alts: "F♯, C♯, G♯" },
@@ -121,63 +135,61 @@
     ];
 
     const circle = document.getElementById('circle');
-    const sidebar = document.getElementById('sidebar-list');
+    const sigList = document.getElementById('sig-list');
 
-    // Inizializzazione
+    // Inizializza UI
     data.forEach((item, i) => {
-        // Crea Circolo
         const angle = (i * 30 - 90) * (Math.PI / 180);
-        const x = 240 + 175 * Math.cos(angle);
-        const y = 240 + 175 * Math.sin(angle);
+        const x = 230 + 170 * Math.cos(angle);
+        const y = 230 + 170 * Math.sin(angle);
 
         const btn = document.createElement('div');
         btn.className = 'note-btn';
         btn.style.left = x + 'px'; btn.style.top = y + 'px';
-        btn.innerHTML = `<b>${item.maj}</b><span>${item.min}</span>`;
+        btn.innerHTML = `<b>${item.maj}</b><small>${item.min}</small>`;
         btn.onclick = () => update(i);
         btn.id = `btn-${i}`;
         circle.appendChild(btn);
 
-        // Crea Sidebar
         const row = document.createElement('div');
-        row.className = 'sidebar-row';
-        row.id = `side-${i}`;
-        row.innerHTML = `<span>${item.maj} / ${item.min}</span> <span class="sig-detail">${item.sig}</span>`;
+        row.className = 'sig-row';
+        row.id = `sig-${i}`;
+        row.innerHTML = `<span>${item.maj}</span><span class="sig-notes">${item.alts}</span>`;
         row.onclick = () => update(i);
-        sidebar.appendChild(row);
+        sigList.appendChild(row);
     });
 
     function update(idx) {
         const s = data[idx];
-
-        // UI Updates
-        document.querySelectorAll('.note-btn, .sidebar-row').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.note-btn, .sig-row').forEach(el => el.classList.remove('active'));
         document.getElementById(`btn-${idx}`).classList.add('active');
-        document.getElementById(`side-${idx}`).classList.add('active');
+        document.getElementById(`sig-${idx}`).classList.add('active');
 
-        // Sposta Gradi Gialli
+        // Sposta gradi
         const offsets = [0, 2, 4, -1, 1, 3, 5]; 
         offsets.forEach((offset, i) => {
             const pos = (idx + offset + 12) % 12;
             const angle = (pos * 30 - 90) * (Math.PI / 180);
             const r = 120;
             const dot = document.getElementById(`deg-${i}`);
-            dot.style.left = (240 + r * Math.cos(angle) - 13) + 'px';
-            dot.style.top = (240 + r * Math.sin(angle) - 13) + 'px';
+            dot.style.left = (230 + r * Math.cos(angle) - 12) + 'px';
+            dot.style.top = (230 + r * Math.sin(angle) - 12) + 'px';
         });
 
-        // Aggiorna Tabelle e Alterazioni
-        document.getElementById('maj-title').innerText = `${s.maj} Maggiore`;
-        document.getElementById('maj-alt').innerText = `Note alterate: ${s.alts}`;
-        
-        const mTypes = ["", "m", "m", "", "", "m", "°"];
-        document.getElementById('maj-body').innerHTML = `<tr>${s.notes.map((n, i) => `<td>${n}${mTypes[i]}</td>`).join('')}</tr>`;
+        // Aggiorna Tabelle
+        const majT = ["", "m", "m", "", "", "m", "°"];
+        const majQ = ["maj7", "m7", "m7", "maj7", "7", "m7", "m7♭5"];
+        const minT = ["m", "°", "", "m", "m", "", ""];
+        const minQ = ["m7", "m7♭5", "maj7", "m7", "m7", "maj7", "7"];
+
+        document.getElementById('maj-title').innerText = `${s.maj} Maggiore (Note: ${s.alts})`;
+        document.getElementById('maj-triadi').innerHTML = s.notes.map((n, i) => `<td><span class="row-label">Triade</span>${n}${majT[i]}</td>`).join('');
+        document.getElementById('maj-quadriadi').innerHTML = s.notes.map((n, i) => `<td><span class="row-label">Quadriade</span>${n}${majQ[i]}</td>`).join('');
 
         const minNotes = [...s.notes.slice(5), ...s.notes.slice(0, 5)];
-        const minTypes = ["m", "°", "", "m", "m", "", ""];
-        document.getElementById('min-title').innerText = `${s.min} Naturale`;
-        document.getElementById('min-alt').innerText = `Note alterate: ${s.alts}`;
-        document.getElementById('min-body').innerHTML = `<tr>${minNotes.map((n, i) => `<td>${n}${minTypes[i]}</td>`).join('')}</tr>`;
+        document.getElementById('min-title').innerText = `${s.min} Naturale (Note: ${s.alts})`;
+        document.getElementById('min-triadi').innerHTML = minNotes.map((n, i) => `<td><span class="row-label">Triade</span>${n}${minT[i]}</td>`).join('');
+        document.getElementById('min-quadriadi').innerHTML = minNotes.map((n, i) => `<td><span class="row-label">Quadriade</span>${n}${minQ[i]}</td>`).join('');
     }
 
     update(0);
